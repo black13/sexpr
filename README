@@ -1,0 +1,5 @@
+This is a library to parse and manipulate a particular form of S-Expression.
+
+It is intended to be merged into TMWA for scripting and data storage purposes.
+
+Building probably requires GCC 4.6 or later, or clang 3.1 or later
