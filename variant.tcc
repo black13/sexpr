@@ -24,6 +24,52 @@ namespace tmwa
 {
 namespace sexpr
 {
+    class VariantFriend
+    {
+    public:
+        template<class U, class... T, class... A>
+        static void unchecked_do_construct(Variant<T...> *var, A&&... a)
+        {
+            var->template do_construct<U, A...>(std::forward<A>(a)...);
+        }
+        template<class E, class... T>
+        static E& unchecked_get(Variant<T...>& var)
+        {
+            return *var.data.template get<E>();
+        }
+        template<class E, class... T>
+        static const E& unchecked_get(const Variant<T...>& var)
+        {
+            return *var.data.template get<E>();
+        }
+        template<class E, class... T>
+        static E&& unchecked_get(Variant<T...>&& var)
+        {
+            return std::move(*var.data.template get<E>());
+        }
+        template<class E, class... T>
+        static const E&& unchecked_get(const Variant<T...>&& var)
+        {
+            return std::move(*var.data.template get<E>());
+        }
+
+        template<class E, class R, class F, class V1, class... V>
+        static void _apply_unchecked(R& r, F&& f, V1&& v1, V&&... v)
+        {
+            apply(r, bind_variadic(std::forward<F>(f), VariantFriend::unchecked_get<E>(std::forward<V1>(v1))), std::forward<V>(v)...);
+        }
+
+        template<class... T, class R, class F, class V1, class... V>
+        static void _apply_dispatch(const Variant<T...> *, R& r, F&& f, V1&& v1, V&&... v)
+        {
+            typedef void (*Function)(R&, F&&, V1&&, V&&...);
+            constexpr static Function dispatch[sizeof...(T)] = { _apply_unchecked<T, R, F, V1, V...>... };
+            assert(v1.state < sizeof...(T));
+            dispatch[v1.state](r, std::forward<F>(f), std::forward<V1>(v1), std::forward<V>(v)...);
+        }
+    };
+
+
     struct Destruct
     {
         template<class U>
@@ -94,7 +140,7 @@ namespace sexpr
         template<class U>
         void operator ()(const U& u)
         {
-            target->template do_construct<U, const U&>(u);
+            VariantFriend::unchecked_do_construct<U>(target, u);
         }
     };
     template<class... T>
@@ -106,7 +152,7 @@ namespace sexpr
         template<class U>
         void operator ()(U&& u)
         {
-            target->template do_construct<U, U>(std::move(u));
+            VariantFriend::unchecked_do_construct<U>(target, std::move(u));
         }
     };
 
@@ -193,46 +239,6 @@ namespace sexpr
     {
         _apply_assign(std::is_void<decltype(std::forward<F>(f)())>(), r, std::forward<F>(f));
     }
-
-    class VariantFriend
-    {
-    public:
-        template<class E, class... T>
-        static E& unchecked_get(Variant<T...>& var)
-        {
-            return *var.data.template get<E>();
-        }
-        template<class E, class... T>
-        static const E& unchecked_get(const Variant<T...>& var)
-        {
-            return *var.data.template get<E>();
-        }
-        template<class E, class... T>
-        static E&& unchecked_get(Variant<T...>&& var)
-        {
-            return std::move(*var.data.template get<E>());
-        }
-        template<class E, class... T>
-        static const E&& unchecked_get(const Variant<T...>&& var)
-        {
-            return std::move(*var.data.template get<E>());
-        }
-
-        template<class E, class R, class F, class V1, class... V>
-        static void _apply_unchecked(R& r, F&& f, V1&& v1, V&&... v)
-        {
-            apply(r, bind_variadic(std::forward<F>(f), VariantFriend::unchecked_get<E>(std::forward<V1>(v1))), std::forward<V>(v)...);
-        }
-
-        template<class... T, class R, class F, class V1, class... V>
-        static void _apply_dispatch(const Variant<T...> *, R& r, F&& f, V1&& v1, V&&... v)
-        {
-            typedef void (*Function)(R&, F&&, V1&&, V&&...);
-            constexpr static Function dispatch[sizeof...(T)] = { _apply_unchecked<T, R, F, V1, V...>... };
-            assert(v1.state < sizeof...(T));
-            dispatch[v1.state](r, std::forward<F>(f), std::forward<V1>(v1), std::forward<V>(v)...);
-        }
-    };
 
     template<class R, class F, class V1, class... V>
     void apply(R& r, F&& f, V1&& v1, V&&... v)

@@ -1,6 +1,5 @@
-#ifndef TMWA_SEXPR_VOID_HPP
-#define TMWA_SEXPR_VOID_HPP
-//    void.hpp - A type that represents nothing and anything.
+#include "sexpr.hpp"
+//    sexpr.cpp - Just include the header
 //
 //    Copyright © 2012 Ben Longbons <b.r.longbons@gmail.com>
 //
@@ -23,17 +22,6 @@ namespace tmwa
 {
 namespace sexpr
 {
-    struct Void
-    {
-        template<class T>
-        constexpr operator T() noexcept{ return T(); }
-        template<class T>
-        void operator = (T&&) noexcept {}
-        template<class T>
-        constexpr Void(T&&) noexcept {}
-        constexpr Void() noexcept = default;
-    };
+
 } // namespace sexpr
 } // namespace tmwa
-
-#endif //TMWA_SEXPR_VOID_HPP

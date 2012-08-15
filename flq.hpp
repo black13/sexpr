@@ -1,6 +1,6 @@
-#ifndef TMWA_SEXPR_VOID_HPP
-#define TMWA_SEXPR_VOID_HPP
-//    void.hpp - A type that represents nothing and anything.
+#ifndef TMWA_SEXPR_FLQ_HPP
+#define TMWA_SEXPR_FLQ_HPP
+//    flq.hpp - Appendable singly-linked list.
 //
 //    Copyright © 2012 Ben Longbons <b.r.longbons@gmail.com>
 //
@@ -19,21 +19,23 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <forward_list>
+
 namespace tmwa
 {
 namespace sexpr
 {
-    struct Void
+    template<class T>
+    struct flq : std::forward_list<T>
     {
-        template<class T>
-        constexpr operator T() noexcept{ return T(); }
-        template<class T>
-        void operator = (T&&) noexcept {}
-        template<class T>
-        constexpr Void(T&&) noexcept {}
-        constexpr Void() noexcept = default;
+        template<class... A>
+        flq(A&&... a)
+        : std::forward_list<T>(std::forward<A>(a)...)
+        {}
     };
 } // namespace sexpr
 } // namespace tmwa
 
-#endif //TMWA_SEXPR_VOID_HPP
+#include "flq.tcc"
+
+#endif //TMWA_SEXPR_FLQ_HPP
