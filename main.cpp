@@ -18,6 +18,7 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "sexpr.hpp"
+#include "parser.hpp"
 
 #include <string>
 #include <iostream>
@@ -31,7 +32,7 @@ constexpr static const char *escape_tables[2][256] =
     {
         "\\x00", "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r", "\\x0e", "\\x0f",
         "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17", "\\x18", "\\x19", "\\x1a", "\\e", "\\x1c", "\\x1d", "\\x1e", "\\x1f",
-        "\\ ", "!", "\\\"", "#", "$", "%", "&", "\\\'", "(", ")", "*", "+", ",", "-", ".", "/",
+        "\\ ", "!", "\\\"", "#", "$", "%", "&", "\\\'", "\\(", "\\)", "*", "+", ",", "-", ".", "/",
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
         "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
         "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\\\", "]", "^", "_",
@@ -74,11 +75,11 @@ constexpr static const char *escape(unsigned char c, bool for_string)
 class Print
 {
 public:
-    void operator () (Void)
+    bool operator () (Void)
     {
-        std::cout << "'nil";
+        return false;
     }
-    void operator () (const List& l)
+    bool operator () (const List& l)
     {
         std::cout << '(';
         bool first = true;
@@ -91,49 +92,41 @@ public:
             apply(Void(), *this, sex);
         }
         std::cout << ')';
+        return true;
     }
-    void operator () (const Int& i)
+    bool operator () (const Int& i)
     {
         std::cout << i.value;
+        return true;
     }
-    void operator () (const String& s)
+    bool operator () (const String& s)
     {
         std::cout << '"';
         for (char c : s)
             std::cout << escape(c, true);
         std::cout << '"';
+        return true;
     }
-    void operator () (const Token& t)
+    bool operator () (const Token& t)
     {
         for (char c : t)
             std::cout << escape(c, false);
+        return true;
     }
 };
 
 void main()
 {
+    Parser parser(TrackingStream("/dev/stdin"));
     SExpr sex;
-    apply(Void(), Print(), sex);
-    std::cout << '\n';
-
-    List l;
-    l.push_front(l);
-    l.push_front(String("string"));
-    l.push_front(sex);
-    sex = l;
-    apply(Void(), Print(), sex);
-    std::cout << '\n';
-
-    sex = Int(42);
-    apply(Void(), Print(), sex);
-    std::cout << '\n';
-
-    sex = String("string");
-    apply(Void(), Print(), sex);
-    std::cout << '\n';
-
-    sex = Token("token");
-    apply(Void(), Print(), sex);
+    bool cond;
+    do
+    {
+        sex = parser.next();
+        apply(cond, Print(), sex);
+        std::cout << '\n';
+    }
+    while (cond);
     std::cout << '\n';
 }
 

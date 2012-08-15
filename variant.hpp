@@ -62,6 +62,18 @@ namespace sexpr
         Variant(Variant&& r);
         Variant& operator = (const Variant& r);
         Variant& operator = (Variant&& r);
+
+        template<class E>
+        Variant(E e)
+        {
+            do_construct<E, E>(std::move(e));
+        }
+
+        template<class E>
+        Variant& operator = (E e)
+        {
+            emplace<E, E>(std::move(e));
+        }
     };
 
     template<class R, class F>

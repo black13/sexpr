@@ -1,6 +1,6 @@
-#ifndef TMWA_SEXPR_FLQ_HPP
-#define TMWA_SEXPR_FLQ_HPP
-//    flq.hpp - Appendable singly-linked list.
+#ifndef TMWA_SEXPR_DEFECTS_HPP
+#define TMWA_SEXPR_DEFECTS_HPP
+//    defects.hpp - Supply things the standard should have.
 //
 //    Copyright © 2012 Ben Longbons <b.r.longbons@gmail.com>
 //
@@ -19,25 +19,18 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <forward_list>
+#include <memory>
 
 namespace tmwa
 {
 namespace sexpr
 {
-    template<class T>
-    struct flq : std::forward_list<T>
+    template<class T, class... A>
+    std::unique_ptr<T> make_unique(A&&... a)
     {
-        template<class... A>
-        flq(A&&... a)
-        : std::forward_list<T>(std::forward<A>(a)...)
-        {}
-
-        void push_back(T t);
-    };
+        return std::unique_ptr<T>(new T(std::forward<A>(a)...));
+    }
 } // namespace sexpr
 } // namespace tmwa
 
-#include "flq.tcc"
-
-#endif //TMWA_SEXPR_FLQ_HPP
+#endif //TMWA_SEXPR_DEFECTS_HPP

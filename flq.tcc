@@ -17,10 +17,28 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <cstdlib>
+
 namespace tmwa
 {
 namespace sexpr
 {
-
+    template<class T>
+    void flq<T>::push_back(T t)
+    {
+        if (this->empty())
+        {
+            this->push_front(std::move(t));
+            return;
+        }
+        // TODO implement this properly
+        auto it = this->begin();
+        // assert it != end
+        auto prev = it;
+        while (++it != this->end())
+            prev = it;
+        // assert it == end && std::next(prev) == it
+        this->insert_after(prev, std::move(t));
+    }
 } // namespace sexpr
 } // namespace tmwa

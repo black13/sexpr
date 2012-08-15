@@ -1,4 +1,5 @@
 CXX = clang++
+CXXFLAGS = -g
 override CXXFLAGS += -std=c++0x
 
 % : %.o
