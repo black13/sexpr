@@ -242,7 +242,7 @@ namespace sexpr
         }
         SExpr operator () (Token t)
         {
-            const char *cstr = t.c_str();
+            const char *cstr = t.value.c_str();
             char *end;
             errno = 0;
             long long l = strtoll(cstr, &end, 0);
@@ -256,7 +256,7 @@ namespace sexpr
             case ERANGE:
                 throw Unexpected(Position{"<unknown>", 0, 0, ""}, "out of range int");
             }
-            if (*end)
+            if (end - cstr != t.value.size())
                 return t;
             return Int(l);
         };

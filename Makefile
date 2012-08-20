@@ -1,4 +1,4 @@
-CXX = clang++
+# CXX = clang++ # does not generate useful debug info, even with current patches
 CXXFLAGS = -g
 override CXXFLAGS += -std=c++0x
 

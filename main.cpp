@@ -29,6 +29,7 @@ namespace sexpr
 {
 constexpr static const char *escape_tables[2][256] =
 {
+    // token escapes
     {
         "\\x00", "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r", "\\x0e", "\\x0f",
         "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17", "\\x18", "\\x19", "\\x1a", "\\e", "\\x1c", "\\x1d", "\\x1e", "\\x1f",
@@ -47,10 +48,11 @@ constexpr static const char *escape_tables[2][256] =
         "\\xe0", "\\xe1", "\\xe2", "\\xe3", "\\xe4", "\\xe5", "\\xe6", "\\xe7", "\\xe8", "\\xe9", "\\xea", "\\xeb", "\\xec", "\\xed", "\\xee", "\\xef",
         "\\xf0", "\\xf1", "\\xf2", "\\xf3", "\\xf4", "\\xf5", "\\xf6", "\\xf7", "\\xf8", "\\xf9", "\\xfa", "\\xfb", "\\xfc", "\\xfd", "\\xfe", "\\xff",
     },
+    // string escapes
     {
         "\\x00", "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r", "\\x0e", "\\x0f",
         "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17", "\\x18", "\\x19", "\\x1a", "\\e", "\\x1c", "\\x1d", "\\x1e", "\\x1f",
-        " ", "!", "\\\"", "#", "$", "%", "&", "\\\'", "(", ")", "*", "+", ",", "-", ".", "/",
+        " ", "!", "\\\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
         "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
         "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\\\", "]", "^", "_",
@@ -102,14 +104,14 @@ public:
     bool operator () (const String& s)
     {
         std::cout << '"';
-        for (char c : s)
+        for (char c : s.value)
             std::cout << escape(c, true);
         std::cout << '"';
         return true;
     }
     bool operator () (const Token& t)
     {
-        for (char c : t)
+        for (char c : t.value)
             std::cout << escape(c, false);
         return true;
     }
@@ -130,10 +132,46 @@ void main()
     std::cout << '\n';
 }
 
+void help()
+{
+    std::cout << "with no arguments, parse and print s-expression input" << std::endl;
+    std::cout << "with one argument, do stuff";
+}
+
+void test_main(std::string arg)
+{
+    if (arg == "--help" || arg == "-h")
+        help();
+    else if (arg == "list")
+    {
+        flq<int> l = {1, 2, 3};
+        l.push_back(4);
+        l.push_back(5);
+        for (int i : l)
+            std::cout << i << ' ';
+        std::cout << std::endl;
+    }
+    else if (arg == "sexpr")
+    {
+        SExpr v, l = List(), i = Int(), s = String("string"), t = Token("token");
+        for (const SExpr& sex : {v, l, i, s, t})
+            apply(Void(), Print(), sex), std::cout << std::endl;
+    }
+    else
+    {
+        help();
+    }
+}
+
 } // namespace sexpr
 } // namespace tmwa
 
-int main()
+int main(int argc, char **argv)
 {
-    tmwa::sexpr::main();
+    if (argc == 2)
+        tmwa::sexpr::test_main(argv[1]);
+    else if (argc == 1)
+        tmwa::sexpr::main();
+    else
+        tmwa::sexpr::help();
 }

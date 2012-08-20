@@ -72,7 +72,7 @@ namespace sexpr
                 throw Unexpected(position(), "C0 control character");
             }
     }
-    
+
     TrackingStream::TrackingStream(std::string name, std::unique_ptr<std::istream> i)
     : in(std::move(i))
     , filename(std::move(name))

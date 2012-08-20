@@ -49,23 +49,39 @@ namespace sexpr
         {}
     };
 
-    class String : public std::string
+    class String
     {
     public:
-        template<class... A>
-        String(A&&... a)
-        : std::string(std::forward<A>(a)...)
-        {}
-    };
+        std::string value;
 
-    class Token : public std::string
-    {
-    public:
+        String(const String&) = default;
+        String(String&);
+        String(String&&) = default;
+        String& operator = (const String&) = default;
+        String& operator = (String&&) = default;
         template<class... A>
-        Token(A&&... a)
-        : std::string(std::forward<A>(a)...)
+        explicit String(A&&... a)
+        : value(std::forward<A>(a)...)
         {}
     };
+    inline String::String(String&) = default;
+
+    class Token
+    {
+    public:
+        std::string value;
+
+        Token(const Token&) = default;
+        Token(Token&);
+        Token(Token&&) = default;
+        Token& operator = (const Token&) = default;
+        Token& operator = (Token&&) = default;
+        template<class... A>
+        explicit Token(A&&... a)
+        : value(std::forward<A>(a)...)
+        {}
+    };
+    inline Token::Token(Token&) = default;
 
     class SExpr : public Variant<Void, List, Int, String, Token>
     {

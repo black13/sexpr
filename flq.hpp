@@ -20,20 +20,204 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <forward_list>
+#include <cstddef>
 
 namespace tmwa
 {
 namespace sexpr
 {
+    // a forward_list stores only the front "pointer"
+    // this wrapper stores the back "pointer" as well
     template<class T>
-    struct flq : std::forward_list<T>
+    class flq
     {
-        template<class... A>
-        flq(A&&... a)
-        : std::forward_list<T>(std::forward<A>(a)...)
-        {}
+        typedef std::forward_list<T> _list;
+        typedef typename _list::iterator _iterator;
+        _list impl;
+        _iterator last;
+    public:
+        flq() : impl(), last(impl.before_begin()) {}
+        // copy/move construct and assign are NOT quite fine, but destruct is (of course)
+        flq(flq&&);
+        flq(const flq&);
+        flq& operator = (flq);
+        template<class It>
+        flq(It b, It e) : impl(), last(impl.before_begin())
+        {
+            while (b != e)
+            {
+                push_back(*b);
+                ++b;
+            }
+        }
+        flq(std::initializer_list<T> l) : flq(l.begin(), l.end()) {}
 
-        void push_back(T t);
+        explicit operator bool();
+        bool empty();
+        T& front();
+        const T& front() const;
+        T take_front();
+        void pop_front();
+        T& back();
+        const T& back() const;
+        void push_back(T v);
+        template<class... A>
+        void emplace_back(A&&... a);
+
+        class iterator;
+        class const_iterator;
+
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
+    };
+
+    template<class T>
+    flq<T>::flq(flq&& r)
+    : impl(std::move(r.impl))
+    , last(r.last)
+    {
+        if (last == r.impl.before_begin())
+            last = impl.before_begin();
+    }
+
+    template<class T>
+    flq<T>::flq(const flq& r) : flq(r.begin(), r.end()) {}
+
+    template<class T>
+    flq<T>& flq<T>::operator = (flq<T> r)
+    {
+        impl = std::move(r.impl);
+        last = r.last;
+        if (last == r.impl.before_begin())
+            last = impl.before_begin();
+    }
+
+    template<class T>
+    class flq<T>::iterator
+    {
+        typedef std::forward_list<T> _list;
+        typedef typename _list::iterator _iterator;
+        _iterator impl;
+
+        friend class flq<T>::const_iterator;
+    public:
+        iterator() : impl() {}
+        iterator(_iterator it) : impl(it) {}
+
+        typedef T value_type;
+        typedef T *pointer;
+        typedef T& reference;
+        typedef ptrdiff_t difference_type;
+        typedef std::forward_iterator_tag iterator_category;
+
+        reference operator *() const
+        {
+            return *std::next(impl);
+        }
+
+        pointer operator->() const
+        {
+            return std::addressof(*(*this));
+        }
+
+        iterator& operator ++()
+        {
+            ++impl;
+            return *this;
+        }
+
+        iterator operator++ (int)
+        {
+            iterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        friend bool operator == (iterator l, iterator r)
+        {
+            return l.impl == r.impl;
+        }
+
+        friend bool operator != (iterator l, iterator r)
+        {
+            return !(l == r);
+        }
+    };
+
+    template<class T>
+    class flq<T>::const_iterator
+    {
+        typedef std::forward_list<T> _list;
+        typedef typename _list::iterator _iterator;
+        typedef typename _list::const_iterator _const_iterator;
+        _const_iterator impl;
+        typedef typename flq<T>::iterator iterator;
+    public:
+        const_iterator() : impl() {}
+        const_iterator(iterator it) : impl(it.impl) {}
+        const_iterator(_iterator it) : impl(it) {}
+        const_iterator(_const_iterator it) : impl(it) {}
+
+        typedef T value_type;
+        typedef const T *pointer;
+        typedef const T& reference;
+        typedef ptrdiff_t difference_type;
+        typedef std::forward_iterator_tag iterator_category;
+
+        reference operator *() const
+        {
+            return *std::next(impl);
+        }
+
+        pointer operator->() const
+        {
+            return std::addressof(*(*this));
+        }
+
+        const_iterator& operator ++()
+        {
+            ++impl;
+            return *this;
+        }
+
+        const_iterator operator++ (int)
+        {
+            const_iterator tmp = *this;
+            ++impl;
+            return tmp;
+        }
+
+        friend bool operator == (const_iterator l, const_iterator r)
+        {
+           return l.impl == r.impl;
+        }
+
+        friend bool operator != (const_iterator l, const_iterator r)
+        {
+           return !(l == r);
+        }
+
+        friend bool operator == (iterator l, const_iterator r)
+        {
+            return const_iterator(l) == r;
+        }
+
+        friend bool operator != (iterator l, const_iterator r)
+        {
+            return !(l == r);
+        }
+
+        friend bool operator == (const_iterator l, iterator r)
+        {
+            return l == const_iterator(r);
+        }
+
+        friend bool operator != (const_iterator l, iterator r)
+        {
+            return !(l == r);
+        }
     };
 } // namespace sexpr
 } // namespace tmwa
