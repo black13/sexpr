@@ -48,7 +48,7 @@ namespace sexpr
         std::cout << "known arguments: help, echo, script, list, sexpr" << std::endl;
     }
 
-    void script()
+    void script(bool interactive)
     {
         Environment env = create_new_environment();
         Parser parser(TrackingStream("/dev/stdin"));
@@ -59,10 +59,11 @@ namespace sexpr
             if (sex.is<Void>())
                 break;
             ValuePtr val = compile(env, sex).eval(env);
-            if (val)
-                std::cout << val->repr() << std::endl;
-            // else
-            //     std::cout << "()" << std::endl;
+            if (interactive)
+                if (val)
+                    std::cout << val->repr() << std::endl;
+                // else
+                //     std::cout << "()" << std::endl;
         }
         while (true);
         std::cout << '\n';
@@ -91,7 +92,11 @@ namespace sexpr
         }
         else if (arg == "script")
         {
-            script();
+            script(false);
+        }
+        else if (arg == "shell")
+        {
+            script(true);
         }
         else
         {

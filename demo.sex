@@ -1,0 +1,21 @@
+"bootstrap"
+((builtin "let") let (builtin "let"))
+(let print (builtin "print"))
+(let if (builtin "if"))
+
+"main program"
+(let hello "Hello, World!")
+(let goodbye "Goodbye, World!")
+
+(let cond 1)
+(if cond
+    (print hello)
+    (print goodbye)
+)
+(let cond 0)
+(print
+    (if cond
+        hello
+        goodbye
+    )
+)
