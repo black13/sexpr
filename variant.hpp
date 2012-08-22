@@ -74,6 +74,17 @@ namespace sexpr
         {
             emplace<E, E>(std::move(e));
         }
+
+        // use these ONLY if only one type makes sense
+        // otherwise use apply
+        template<class E>
+        bool is() const;
+
+        template<class E>
+        E *get_if();
+
+        template<class E>
+        const E *get_if() const;
     };
 
     template<class R, class F>

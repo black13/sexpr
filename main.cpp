@@ -56,13 +56,15 @@ namespace sexpr
         do
         {
             sex = parser.next();
+            if (sex.is<Void>())
+                break;
             ValuePtr val = compile(env, sex).eval(env);
             if (val)
                 std::cout << val->repr() << std::endl;
             // else
             //     std::cout << "()" << std::endl;
         }
-        while (std::cout);
+        while (true);
         std::cout << '\n';
     }
 

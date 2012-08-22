@@ -221,6 +221,31 @@ namespace sexpr
         return *this;
     }
 
+    template<class D, class... T>
+    template<class E>
+    bool Variant<D, T...>::is() const
+    {
+        return get_if<E>();
+    }
+
+    template<class D, class... T>
+    template<class E>
+    E *Variant<D, T...>::get_if()
+    {
+        if (state == Union<D, T...>::index<E>())
+            return data.template get<E>();
+        return nullptr;
+    }
+
+    template<class D, class... T>
+    template<class E>
+    const E *Variant<D, T...>::get_if() const
+    {
+        if (state == Union<D, T...>::index<E>())
+            return data.template get<E>();
+        return nullptr;
+    }
+
     template<class R, class F>
     void _apply_assign(std::true_type, R& r, F&& f)
     {
