@@ -1,5 +1,6 @@
-#include "flq.hpp"
-//    flq.cpp - Just include the header
+#ifndef TMWA_SEXPR_IO_HPP
+#define TMWA_SEXPR_IO_HPP
+//    io.hpp - iostream interfaces for SExprs.
 //
 //    Copyright © 2012 Ben Longbons <b.r.longbons@gmail.com>
 //
@@ -18,14 +19,19 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <ostream>
+
+#include "sexpr.hpp"
+
 namespace tmwa
 {
 namespace sexpr
 {
-    __attribute__((unused))
-    static void test()
-    {
-        flq<int>();
-    }
+    std::ostream& operator << (std::ostream&, const SExpr&);
+#if 0
+    std::istream& operator >> (std::istream&, SExpr&);
+#endif
 } // namespace sexpr
 } // namespace tmwa
+
+#endif //TMWA_SEXPR_IO_HPP

@@ -52,7 +52,7 @@ namespace sexpr
         static_assert(!std::is_const<F>::value, "union elements are not const");
         static_assert(!std::is_volatile<F>::value, "union elements are not volatile");
         static_assert(!std::is_reference<F>::value, "union elements are not references");
-        static_assert(Union<R...>::template index<F>() == -1, "unions do not contain duplicates");
+        static_assert(Union<R...>::template index<F>() == size_t(-1), "unions do not contain duplicates");
         union Impl
         {
             F first;

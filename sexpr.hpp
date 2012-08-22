@@ -36,6 +36,10 @@ namespace sexpr
         List(A&&... a)
         : flq<SExpr>(std::forward<A>(a)...)
         {}
+
+        List(std::initializer_list<SExpr> list)
+        : flq<SExpr>(list)
+        {}
     };
 
     class Int

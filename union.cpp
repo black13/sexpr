@@ -36,6 +36,6 @@ static Union<int, Foo> u;
 
 static_assert(u.index<int>() == 0, "int");
 static_assert(u.index<Foo>() == 1, "Foo");
-static_assert(u.index<char>() == -1, "char");
+static_assert(u.index<char>() == size_t(-1), "char");
 } // namespace sexpr
 } // namespace tmwa

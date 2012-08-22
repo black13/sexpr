@@ -219,7 +219,7 @@ namespace sexpr
         {
             return Void();
         }
-        SExpr operator () (BeginList bl)
+        SExpr operator () (BeginList)
         {
             // size_t line = bl.line;
             // size_t column = bl.column;
@@ -232,7 +232,7 @@ namespace sexpr
             }
             return out;
         }
-        SExpr operator () (EndList el)
+        SExpr operator () (EndList)
         {
             return Void();
         }
@@ -256,7 +256,7 @@ namespace sexpr
             case ERANGE:
                 throw Unexpected(Position{"<unknown>", 0, 0, ""}, "out of range int");
             }
-            if (end - cstr != t.value.size())
+            if (size_t(end - cstr) != t.value.size())
                 return t;
             return Int(l);
         };

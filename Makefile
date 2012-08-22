@@ -1,5 +1,5 @@
 # CXX = clang++ # does not generate useful debug info, even with current patches
-CXXFLAGS = -g
+CXXFLAGS = -g -Wall -Wextra
 override CXXFLAGS += -std=c++0x
 
 % : %.o

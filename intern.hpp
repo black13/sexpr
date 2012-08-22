@@ -1,5 +1,6 @@
-#include "flq.hpp"
-//    flq.cpp - Just include the header
+#ifndef TMWA_SEXPR_INTERN_HPP
+#define TMWA_SEXPR_INTERN_HPP
+//    intern.hpp - std::string pool, assuming cow
 //
 //    Copyright © 2012 Ben Longbons <b.r.longbons@gmail.com>
 //
@@ -18,14 +19,17 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <string>
+
 namespace tmwa
 {
 namespace sexpr
 {
-    __attribute__((unused))
-    static void test()
-    {
-        flq<int>();
-    }
+    std::string intern(const char *);
+    std::string intern(std::string);
+    void deintern(const std::string&);
+    void deintern_all();
 } // namespace sexpr
 } // namespace tmwa
+
+#endif //TMWA_SEXPR_INTERN_HPP

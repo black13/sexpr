@@ -19,6 +19,8 @@
 
 #include "sexpr.hpp"
 #include "parser.hpp"
+#include "io.hpp"
+#include "script.hpp"
 
 #include <string>
 #include <iostream>
@@ -27,141 +29,73 @@ namespace tmwa
 {
 namespace sexpr
 {
-constexpr static const char *escape_tables[2][256] =
-{
-    // token escapes
+    void echo()
     {
-        "\\x00", "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r", "\\x0e", "\\x0f",
-        "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17", "\\x18", "\\x19", "\\x1a", "\\e", "\\x1c", "\\x1d", "\\x1e", "\\x1f",
-        "\\ ", "!", "\\\"", "#", "$", "%", "&", "\\\'", "\\(", "\\)", "*", "+", ",", "-", ".", "/",
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
-        "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
-        "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\\\", "]", "^", "_",
-        "`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o",
-        "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "\\x7f",
-        "\\x80", "\\x81", "\\x82", "\\x83", "\\x84", "\\x85", "\\x86", "\\x87", "\\x88", "\\x89", "\\x8a", "\\x8b", "\\x8c", "\\x8d", "\\x8e", "\\x8f",
-        "\\x90", "\\x91", "\\x92", "\\x93", "\\x94", "\\x95", "\\x96", "\\x97", "\\x98", "\\x99", "\\x9a", "\\x9b", "\\x9c", "\\x9d", "\\x9e", "\\x9f",
-        "\\xa0", "\\xa1", "\\xa2", "\\xa3", "\\xa4", "\\xa5", "\\xa6", "\\xa7", "\\xa8", "\\xa9", "\\xaa", "\\xab", "\\xac", "\\xad", "\\xae", "\\xaf",
-        "\\xb0", "\\xb1", "\\xb2", "\\xb3", "\\xb4", "\\xb5", "\\xb6", "\\xb7", "\\xb8", "\\xb9", "\\xba", "\\xbb", "\\xbc", "\\xbd", "\\xbe", "\\xbf",
-        "\\xc0", "\\xc1", "\\xc2", "\\xc3", "\\xc4", "\\xc5", "\\xc6", "\\xc7", "\\xc8", "\\xc9", "\\xca", "\\xcb", "\\xcc", "\\xcd", "\\xce", "\\xcf",
-        "\\xd0", "\\xd1", "\\xd2", "\\xd3", "\\xd4", "\\xd5", "\\xd6", "\\xd7", "\\xd8", "\\xd9", "\\xda", "\\xdb", "\\xdc", "\\xdd", "\\xde", "\\xdf",
-        "\\xe0", "\\xe1", "\\xe2", "\\xe3", "\\xe4", "\\xe5", "\\xe6", "\\xe7", "\\xe8", "\\xe9", "\\xea", "\\xeb", "\\xec", "\\xed", "\\xee", "\\xef",
-        "\\xf0", "\\xf1", "\\xf2", "\\xf3", "\\xf4", "\\xf5", "\\xf6", "\\xf7", "\\xf8", "\\xf9", "\\xfa", "\\xfb", "\\xfc", "\\xfd", "\\xfe", "\\xff",
-    },
-    // string escapes
-    {
-        "\\x00", "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r", "\\x0e", "\\x0f",
-        "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17", "\\x18", "\\x19", "\\x1a", "\\e", "\\x1c", "\\x1d", "\\x1e", "\\x1f",
-        " ", "!", "\\\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
-        "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
-        "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\\\", "]", "^", "_",
-        "`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o",
-        "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "\\x7f",
-        "\\x80", "\\x81", "\\x82", "\\x83", "\\x84", "\\x85", "\\x86", "\\x87", "\\x88", "\\x89", "\\x8a", "\\x8b", "\\x8c", "\\x8d", "\\x8e", "\\x8f",
-        "\\x90", "\\x91", "\\x92", "\\x93", "\\x94", "\\x95", "\\x96", "\\x97", "\\x98", "\\x99", "\\x9a", "\\x9b", "\\x9c", "\\x9d", "\\x9e", "\\x9f",
-        "\\xa0", "\\xa1", "\\xa2", "\\xa3", "\\xa4", "\\xa5", "\\xa6", "\\xa7", "\\xa8", "\\xa9", "\\xaa", "\\xab", "\\xac", "\\xad", "\\xae", "\\xaf",
-        "\\xb0", "\\xb1", "\\xb2", "\\xb3", "\\xb4", "\\xb5", "\\xb6", "\\xb7", "\\xb8", "\\xb9", "\\xba", "\\xbb", "\\xbc", "\\xbd", "\\xbe", "\\xbf",
-        "\\xc0", "\\xc1", "\\xc2", "\\xc3", "\\xc4", "\\xc5", "\\xc6", "\\xc7", "\\xc8", "\\xc9", "\\xca", "\\xcb", "\\xcc", "\\xcd", "\\xce", "\\xcf",
-        "\\xd0", "\\xd1", "\\xd2", "\\xd3", "\\xd4", "\\xd5", "\\xd6", "\\xd7", "\\xd8", "\\xd9", "\\xda", "\\xdb", "\\xdc", "\\xdd", "\\xde", "\\xdf",
-        "\\xe0", "\\xe1", "\\xe2", "\\xe3", "\\xe4", "\\xe5", "\\xe6", "\\xe7", "\\xe8", "\\xe9", "\\xea", "\\xeb", "\\xec", "\\xed", "\\xee", "\\xef",
-        "\\xf0", "\\xf1", "\\xf2", "\\xf3", "\\xf4", "\\xf5", "\\xf6", "\\xf7", "\\xf8", "\\xf9", "\\xfa", "\\xfb", "\\xfc", "\\xfd", "\\xfe", "\\xff",
-    }
-};
-
-constexpr static const char *escape(unsigned char c, bool for_string)
-{
-    return escape_tables[for_string][c];
-}
-
-class Print
-{
-public:
-    bool operator () (Void)
-    {
-        return false;
-    }
-    bool operator () (const List& l)
-    {
-        std::cout << '(';
-        bool first = true;
-        for (const SExpr& sex : l)
+        Parser parser(TrackingStream("/dev/stdin"));
+        SExpr sex;
+        do
         {
-            if (first)
-                first = false;
-            else
-                std::cout << ' ';
-            apply(Void(), *this, sex);
+            sex = parser.next();
+            std::cout << sex << std::endl;
         }
-        std::cout << ')';
-        return true;
-    }
-    bool operator () (const Int& i)
-    {
-        std::cout << i.value;
-        return true;
-    }
-    bool operator () (const String& s)
-    {
-        std::cout << '"';
-        for (char c : s.value)
-            std::cout << escape(c, true);
-        std::cout << '"';
-        return true;
-    }
-    bool operator () (const Token& t)
-    {
-        for (char c : t.value)
-            std::cout << escape(c, false);
-        return true;
-    }
-};
-
-void main()
-{
-    Parser parser(TrackingStream("/dev/stdin"));
-    SExpr sex;
-    bool cond;
-    do
-    {
-        sex = parser.next();
-        apply(cond, Print(), sex);
-        std::cout << '\n';
-    }
-    while (cond);
-    std::cout << '\n';
-}
-
-void help()
-{
-    std::cout << "with no arguments, parse and print s-expression input" << std::endl;
-    std::cout << "with one argument, do stuff";
-}
-
-void test_main(std::string arg)
-{
-    if (arg == "--help" || arg == "-h")
-        help();
-    else if (arg == "list")
-    {
-        flq<int> l = {1, 2, 3};
-        l.push_back(4);
-        l.push_back(5);
-        for (int i : l)
-            std::cout << i << ' ';
+        while (std::cout);
         std::cout << std::endl;
     }
-    else if (arg == "sexpr")
+
+    void help()
     {
-        SExpr v, l = List(), i = Int(), s = String("string"), t = Token("token");
-        for (const SExpr& sex : {v, l, i, s, t})
-            apply(Void(), Print(), sex), std::cout << std::endl;
+        std::cout << "pass one argument" << std::endl;
+        std::cout << "known arguments: help, echo, script, list, sexpr" << std::endl;
     }
-    else
+
+    void script()
     {
-        help();
+        Environment env = create_new_environment();
+        Parser parser(TrackingStream("/dev/stdin"));
+        SExpr sex;
+        do
+        {
+            sex = parser.next();
+            ValuePtr val = compile(env, sex).eval(env);
+            if (val)
+                std::cout << val->repr() << std::endl;
+            // else
+            //     std::cout << "()" << std::endl;
+        }
+        while (std::cout);
+        std::cout << '\n';
     }
-}
+
+    void main(std::string arg)
+    {
+        if (arg == "list")
+        {
+            flq<int> l = {1, 2, 3};
+            l.push_back(4);
+            l.push_back(5);
+            for (int i : l)
+                std::cout << i << ' ';
+            std::cout << std::endl;
+        }
+        else if (arg == "sexpr")
+        {
+            SExpr v, l = List(), i = Int(), s = String("string"), t = Token("token");
+            for (const SExpr& sex : {v, l, i, s, t})
+                std::cout << sex << std::endl;
+        }
+        else if (arg == "echo")
+        {
+            echo();
+        }
+        else if (arg == "script")
+        {
+            script();
+        }
+        else
+        {
+            help();
+        }
+    }
 
 } // namespace sexpr
 } // namespace tmwa
@@ -169,9 +103,7 @@ void test_main(std::string arg)
 int main(int argc, char **argv)
 {
     if (argc == 2)
-        tmwa::sexpr::test_main(argv[1]);
-    else if (argc == 1)
-        tmwa::sexpr::main();
+        tmwa::sexpr::main(argv[1]);
     else
         tmwa::sexpr::help();
 }

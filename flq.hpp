@@ -92,6 +92,7 @@ namespace sexpr
         last = r.last;
         if (last == r.impl.before_begin())
             last = impl.before_begin();
+        return *this;
     }
 
     template<class T>
