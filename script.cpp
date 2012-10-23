@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "io.hpp"
-#include "intern.hpp"
 
 namespace tmwa
 {
@@ -217,10 +216,10 @@ namespace sexpr
 
     std::map<std::string, Callable> builtins =
     {
-        {intern("if"), {intern("if"), std::make_shared<CallableImpl>(ConditionalCallable())}},
-        {intern("let"), {intern("let"), std::make_shared<CallableImpl>(AssignmentCallable())}},
-        {intern("print"), {intern("print"), std::make_shared<CallableImpl>(FunctionCallable(print_function))}},
-        {intern("builtin"), {intern("builtin"), std::make_shared<CallableImpl>(FunctionCallable(builtin_function))}},
+        {"if", {"if", std::make_shared<CallableImpl>(ConditionalCallable())}},
+        {"let", {"let", std::make_shared<CallableImpl>(AssignmentCallable())}},
+        {"print", {"print", std::make_shared<CallableImpl>(FunctionCallable(print_function))}},
+        {"builtin", {"builtin", std::make_shared<CallableImpl>(FunctionCallable(builtin_function))}},
     };
 
     ValuePtr builtin_function(Environment&, flq<ValuePtr> q)
@@ -235,10 +234,9 @@ namespace sexpr
 
     Environment create_new_environment()
     {
-        std::string builtin = intern("builtin");
         return Environment
         {
-            {builtin, std::make_shared<Callable>(builtins.at(builtin))},
+            {"builtin", std::make_shared<Callable>(builtins.at("builtin"))},
         };
     }
 } // namespace sexpr

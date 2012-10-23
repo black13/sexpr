@@ -1,4 +1,8 @@
-# CXX = clang++ # does not generate useful debug info, even with current patches
+GXX = g++
+CLANGXX = clang++
+CXX := ${GXX}
+# CXX := ${CLANGXX}
+# clang has better error messages, but does not generate useful debug info, even with current patches
 CXXFLAGS = -g -Wall -Wextra
 override CXXFLAGS += -std=c++0x
 
@@ -9,7 +13,7 @@ override CXXFLAGS += -std=c++0x
 %.s : %.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -S -o $@ $< -masm=intel
 %.ll : %.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -S -o $@ $< -emit-llvm
+	$(CLANGXX) $(CXXFLAGS) $(CPPFLAGS) -S -o $@ $< -emit-llvm
 
 main: $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
