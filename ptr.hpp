@@ -54,13 +54,9 @@ namespace sexpr
         template<class U>
         Unique& operator = (Unique<U>);
 
-        T& operator *();
+        T& operator *() const;
 
-        const T& operator *() const;
-
-        T *operator->();
-
-        const T *operator->() const;
+        T *operator->() const;
 
         operator bool() const = delete;
     };
@@ -97,13 +93,9 @@ namespace sexpr
         template<class U>
         Shared& operator = (Shared<U>);
 
-        T& operator *();
+        T& operator *() const;
 
-        const T& operator *() const;
-
-        T *operator->();
-
-        const T *operator->() const;
+        T *operator->() const;
 
         operator bool() const = delete;
     };

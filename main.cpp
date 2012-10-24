@@ -49,21 +49,39 @@ namespace sexpr
         std::cout << "known arguments: help, echo, script, list, sexpr" << std::endl;
     }
 
+    void script_inner_loop(bool interactive, Environment& env, Parser& parser, std::function<void(void)>& resume)
+    {
+        SExpr sex = parser.next();
+        if (sex.is<Void>())
+            return;
+        compile(env, sex).eval(env, [interactive, &env, &parser, &resume](ValuePtr val)
+        {
+            if (interactive)
+                std::cout << val->repr() << std::endl;
+            // in reality, resume would have a timeout and be closely related to Environment
+            resume = [interactive, &env, &parser, &resume]()
+            {
+                script_inner_loop(interactive, env, parser, resume);
+            };
+        });
+    }
+
     void script(bool interactive)
     {
         Environment env = create_new_environment();
         Parser parser(TrackingStream("/dev/stdin"));
-        SExpr sex;
-        do
+        std::function<void(void)> resume = [interactive, &env, &parser, &resume]()
         {
-            sex = parser.next();
-            if (sex.is<Void>())
+            script_inner_loop(interactive, env, parser, resume);
+        };
+        while (true)
+        {
+            std::function<void(void)> current;
+            std::swap(resume, current);
+            if (!current)
                 break;
-            ValuePtr val = compile(env, sex).eval(env);
-            if (interactive)
-                std::cout << val->repr() << std::endl;
+            current();
         }
-        while (true);
         std::cout << '\n';
     }
 

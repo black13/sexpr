@@ -37,9 +37,9 @@ namespace sexpr
 
     ValuePtr nil = Shared<NilValue>();
 
-    Evaluable eval_to_nil = [](Environment&)
+    Evaluable eval_to_nil = [](Environment&, Continuation ret)
     {
-        return nil;
+        ret(nil);
     };
 
     void warn(const std::string& s)
@@ -47,9 +47,9 @@ namespace sexpr
         std::cout << "Warning: " << s << std::endl;
     }
 
-    ValuePtr Evaluable::eval(Environment& env)
+    void Evaluable::eval(Environment& env, Continuation c) const
     {
-        return (*impl)(env);
+        (*impl)(env, c);
     }
 
     Evaluable compile(Environment& env, SExpr code)
@@ -68,34 +68,49 @@ namespace sexpr
                     return eval_to_nil;
                 // This does not prevent the development of lambdas - just pass the bound variables in the environment at call time.
                 // however, it does prevent nonconstant function pointers
-                CallablePtr func = compile(*env, l.take_front()).eval(*env)->as_callable();
-                return (*func)(*env, std::move(l));
+
+                Evaluable out;
+                // TODO: see if it's possible to CPS_ify this
+                // (at present it throws if out is not initialized)
+                // This would allow crazy code like:
+                // ((block (sleep 2) foo) "foo args")
+                // which is roughly equivalent to:
+                // (block (sleep 2) (foo "foo args"))
+                compile(*env, l.take_front()).eval(*env,
+                    [&out, &l, this](ValuePtr vp)
+                    {
+                        CallablePtr func = vp->as_callable();
+                        out = (*func)(*env, std::move(l));
+                    }
+                );
+                return out;
             }
             Evaluable operator()(Int i)
             {
                 ValuePtr vp = Shared<IntValue>(i.value);
-                return [vp] (Environment&)
+                return [vp] (Environment&, Continuation ret)
                 {
-                    return vp;
+                    ret(vp);
                 };
             }
             Evaluable operator()(String s)
             {
                 ValuePtr vp = Shared<StringValue>(std::move(s.value));
-                return [vp] (Environment&)
+                return [vp] (Environment&, Continuation ret)
                 {
-                    return vp;
+                    ret(vp);
                 };
             }
             Evaluable operator()(Token t)
             {
                 std::string varname = std::move(t.value);
-                return [varname] (Environment& env)
+                return [varname] (Environment& env, Continuation ret)
                 {
                     auto it = env.find(varname);
                     if (it == env.end())
-                        return nil;
-                    return it->second;
+                        ret(nil);
+                    else
+                        ret(it->second);
                 };
             }
             Evaluable operator()(Void)
@@ -117,13 +132,31 @@ namespace sexpr
             RealFunctionPtr impl;
             std::vector<Evaluable> eargs;
 
-            ValuePtr operator()(Environment& env)
+            // called when the script-level function is called at this site
+            void operator()(Environment& env, Continuation ret) const
             {
-                // TODO replace this with (delayable) CPS
-                flq<ValuePtr> args;
-                for (Evaluable& arg : eargs)
-                    args.push_back(arg.eval(env));
-                return (*impl)(env, std::move(args));
+                Shared<flq<ValuePtr>> args;
+                Evaluable er = [this, args](Environment& env, Continuation ret)
+                {
+                    ret ((*impl)(env, *args));
+                };
+
+                for (auto it = eargs.rbegin(), end = eargs.rend(); it != end; ++it)
+                {
+                    // is it really necessary to stack them 2 deep?
+                    Evaluable earg = *it;
+                    er = [er, earg, args](Environment& env, Continuation ret)
+                    {
+                        earg.eval(env, [&env, args, er, ret](ValuePtr vp)
+                        {
+                            args->push_back(vp);
+                            // er has its own binding to args
+                            er.eval(env, ret);
+                        });
+                    };
+                }
+
+                er.eval(env, ret);
             }
         };
     public:
@@ -153,10 +186,15 @@ namespace sexpr
             , if_false(std::move(f))
             {}
 
-            ValuePtr operator()(Environment& env)
+            void operator()(Environment& env, Continuation ret)
             {
-                ValuePtr c = cond.eval(env);
-                return (c->as_int()) ? if_true.eval(env) : if_false.eval(env);
+                cond.eval(env, [this, ret, &env](ValuePtr c)
+                {
+                    if (c->as_int())
+                        if_true.eval(env, ret);
+                    else
+                        if_false.eval(env, ret);
+                });
             }
         };
     public:
@@ -200,13 +238,15 @@ namespace sexpr
             Evaluable rhs = compile(env, args.take_front());
             if (!args.empty())
                 throw ScriptError("extra let garbage");
-            return [varname, rhs] (Environment& env) mutable
+            return [varname, rhs] (Environment& env, Continuation ret)
             {
-                ValuePtr tmp = rhs.eval(env);
-                auto pair = env.insert({varname, tmp});
-                if (!pair.second)
-                    pair.first->second = tmp;
-                return nil;
+                rhs.eval(env, [&env, varname, ret](ValuePtr tmp)
+                {
+                    auto pair = env.insert({varname, tmp});
+                    if (!pair.second)
+                        pair.first->second = tmp;
+                    ret(nil);
+                });
             };
         }
     };

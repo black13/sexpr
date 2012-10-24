@@ -50,7 +50,8 @@ namespace sexpr
     typedef Shared<BaseValue> ValuePtr;
     typedef std::map<std::string, ValuePtr> Environment;
     typedef Shared<Evaluable> EvaluablePtr;
-    typedef std::function<ValuePtr(Environment&)> EvaluableImplFunction;
+    typedef std::function<void(ValuePtr)> Continuation;
+    typedef std::function<void(Environment&, Continuation)> EvaluableImplFunction;
     typedef Shared<EvaluableImplFunction> EvaluableImplFunctionPtr;
     typedef std::function<ValuePtr(Environment&, flq<ValuePtr>)> RealFunction;
     typedef Shared<RealFunction> RealFunctionPtr;
@@ -89,7 +90,7 @@ namespace sexpr
         Evaluable& operator = (const Evaluable&) = default;
         Evaluable& operator = (Evaluable&&) = default;
 
-        ValuePtr eval(Environment&);
+        void eval(Environment&, Continuation) const;
     };
     inline Evaluable::Evaluable(Evaluable&) = default;
 

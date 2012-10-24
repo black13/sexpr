@@ -65,25 +65,13 @@ namespace sexpr
     }
 
     template<class T>
-    T& Unique<T>::operator *()
+    T& Unique<T>::operator *() const
     {
         return *impl;
     }
 
     template<class T>
-    const T& Unique<T>::operator *() const
-    {
-        return *impl;
-    }
-
-    template<class T>
-    T *Unique<T>::operator ->()
-    {
-        return &*impl;
-    }
-
-    template<class T>
-    const T *Unique<T>::operator ->() const
+    T *Unique<T>::operator->() const
     {
         return &*impl;
     }
@@ -142,26 +130,13 @@ namespace sexpr
     }
 
     template<class T>
-    T& Shared<T>::operator *()
+    T& Shared<T>::operator *() const
     {
         return *impl;
     }
 
     template<class T>
-    const T& Shared<T>::operator *() const
-    {
-        return *impl;
-    }
-
-
-    template<class T>
-    T *Shared<T>::operator ->()
-    {
-        return &*impl;
-    }
-
-    template<class T>
-    const T *Shared<T>::operator ->() const
+    T *Shared<T>::operator ->() const
     {
         return &*impl;
     }
