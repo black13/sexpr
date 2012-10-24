@@ -54,7 +54,7 @@ namespace sexpr
         SExpr sex = parser.next();
         if (sex.is<Void>())
             return;
-        compile(env, sex).eval(env, [interactive, &env, &parser, &resume](ValuePtr val)
+        compile(env, sex).eval(env, [interactive, &env, &parser, &resume](Shared<Value> val)
         {
             if (interactive)
                 std::cout << val->repr() << std::endl;

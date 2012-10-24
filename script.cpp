@@ -26,7 +26,7 @@ namespace tmwa
 {
 namespace sexpr
 {
-    class NilValue : public BaseValue
+    class NilValue : public Value
     {
     public:
         virtual SExpr repr() override
@@ -35,7 +35,7 @@ namespace sexpr
         }
     };
 
-    ValuePtr nil = Shared<NilValue>();
+    Shared<Value> nil = Shared<NilValue>();
 
     Evaluable eval_to_nil = [](Environment&, Continuation ret)
     {
@@ -77,9 +77,9 @@ namespace sexpr
                 // which is roughly equivalent to:
                 // (block (sleep 2) (foo "foo args"))
                 compile(*env, l.take_front()).eval(*env,
-                    [&out, &l, this](ValuePtr vp)
+                    [&out, &l, this](Shared<Value> vp)
                     {
-                        CallablePtr func = vp->as_callable();
+                        Shared<CallableImpl> func = vp->as_callable();
                         out = (*func)(*env, std::move(l));
                     }
                 );
@@ -87,7 +87,7 @@ namespace sexpr
             }
             Evaluable operator()(Int i)
             {
-                ValuePtr vp = Shared<IntValue>(i.value);
+                Shared<Value> vp = Shared<IntValue>(i.value);
                 return [vp] (Environment&, Continuation ret)
                 {
                     ret(vp);
@@ -95,7 +95,7 @@ namespace sexpr
             }
             Evaluable operator()(String s)
             {
-                ValuePtr vp = Shared<StringValue>(std::move(s.value));
+                Shared<Value> vp = Shared<StringValue>(std::move(s.value));
                 return [vp] (Environment&, Continuation ret)
                 {
                     ret(vp);
@@ -125,17 +125,17 @@ namespace sexpr
 
     class FunctionCallable
     {
-        RealFunctionPtr impl;
+        Shared<RealFunction> impl;
 
         struct FunctionFunctor
         {
-            RealFunctionPtr impl;
+            Shared<RealFunction> impl;
             std::vector<Evaluable> eargs;
 
             // called when the script-level function is called at this site
             void operator()(Environment& env, Continuation ret) const
             {
-                Shared<flq<ValuePtr>> args;
+                Shared<flq<Shared<Value>>> args;
                 Evaluable er = [this, args](Environment& env, Continuation ret)
                 {
                     ret ((*impl)(env, *args));
@@ -147,7 +147,7 @@ namespace sexpr
                     Evaluable earg = *it;
                     er = [er, earg, args](Environment& env, Continuation ret)
                     {
-                        earg.eval(env, [&env, args, er, ret](ValuePtr vp)
+                        earg.eval(env, [&env, args, er, ret](Shared<Value> vp)
                         {
                             args->push_back(vp);
                             // er has its own binding to args
@@ -188,7 +188,7 @@ namespace sexpr
 
             void operator()(Environment& env, Continuation ret)
             {
-                cond.eval(env, [this, ret, &env](ValuePtr c)
+                cond.eval(env, [this, ret, &env](Shared<Value> c)
                 {
                     if (c->as_int())
                         if_true.eval(env, ret);
@@ -240,7 +240,7 @@ namespace sexpr
                 throw ScriptError("extra let garbage");
             return [varname, rhs] (Environment& env, Continuation ret)
             {
-                rhs.eval(env, [&env, varname, ret](ValuePtr tmp)
+                rhs.eval(env, [&env, varname, ret](Shared<Value> tmp)
                 {
                     auto pair = env.insert({varname, tmp});
                     if (!pair.second)
@@ -251,10 +251,10 @@ namespace sexpr
         }
     };
 
-    ValuePtr print_function(Environment&, flq<ValuePtr> q)
+    Shared<Value> print_function(Environment&, flq<Shared<Value>> q)
     {
         bool first = true;
-        for (ValuePtr& vp : q)
+        for (Shared<Value>& vp : q)
         {
             if (!first)
                 std::cout << ' ';
@@ -265,7 +265,7 @@ namespace sexpr
         return nil;
     };
 
-    ValuePtr builtin_function(Environment&, flq<ValuePtr>);
+    Shared<Value> builtin_function(Environment&, flq<Shared<Value>>);
 
     std::map<std::string, Callable> builtins =
     {
@@ -275,7 +275,7 @@ namespace sexpr
         {"builtin", {"builtin", Shared<CallableImpl>(FunctionCallable(builtin_function))}},
     };
 
-    ValuePtr builtin_function(Environment&, flq<ValuePtr> q)
+    Shared<Value> builtin_function(Environment&, flq<Shared<Value>> q)
     {
         if (q.empty())
             throw ScriptError("missing builtin argument");

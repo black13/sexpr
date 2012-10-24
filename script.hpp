@@ -45,34 +45,29 @@ namespace sexpr
         }
     };
 
-    class BaseValue;
+    class Value;
     class Evaluable;
-    typedef Shared<BaseValue> ValuePtr;
-    typedef std::map<std::string, ValuePtr> Environment;
-    typedef Shared<Evaluable> EvaluablePtr;
-    typedef std::function<void(ValuePtr)> Continuation;
+    typedef std::map<std::string, Shared<Value>> Environment;
+    typedef std::function<void(Shared<Value>)> Continuation;
     typedef std::function<void(Environment&, Continuation)> EvaluableImplFunction;
-    typedef Shared<EvaluableImplFunction> EvaluableImplFunctionPtr;
-    typedef std::function<ValuePtr(Environment&, flq<ValuePtr>)> RealFunction;
-    typedef Shared<RealFunction> RealFunctionPtr;
+    typedef std::function<Shared<Value>(Environment&, flq<Shared<Value>>)> RealFunction;
     typedef std::function<Evaluable(Environment&, List)> CallableImpl;
-    typedef Shared<CallableImpl> CallablePtr;
 
     void warn(const std::string&);
 
-    class BaseValue
+    class Value
     {
     public:
         virtual int64_t as_int() { warn("Not integer"); return 0; }
         virtual std::string as_string() { warn("Not string"); return std::string(); }
-        virtual CallablePtr as_callable() { /* no warn - handled elsewhere */ return CallablePtr(); }
+        virtual Shared<CallableImpl> as_callable() { /* no warn - handled elsewhere */ return Shared<CallableImpl>(); }
         virtual SExpr repr() = 0;
-        virtual ~BaseValue() {}
+        virtual ~Value() {}
     };
 
     class Evaluable
     {
-        EvaluableImplFunctionPtr impl;
+        Shared<EvaluableImplFunction> impl;
     public:
         // You might wonder why I'm doing this, instead of just taking a
         // std::function directly. The answer is that that would require
@@ -96,20 +91,20 @@ namespace sexpr
 
     Evaluable compile(Environment& env, SExpr code);
 
-    class Callable : public BaseValue
+    class Callable : public Value
     {
-        CallablePtr impl;
+        Shared<CallableImpl> impl;
         std::string name;
     public:
-        Callable(std::string n, CallablePtr p)
+        Callable(std::string n, Shared<CallableImpl> p)
         : impl(std::move(p))
         , name(std::move(n))
         {}
-        CallablePtr as_callable() override { return impl; }
+        Shared<CallableImpl> as_callable() override { return impl; }
         SExpr repr() override { return List({ Token("builtin"), String(name)}); }
     };
 
-    class IntValue : public BaseValue
+    class IntValue : public Value
     {
         int64_t value;
     public:
@@ -120,7 +115,7 @@ namespace sexpr
         SExpr repr() override { return Int(value); }
     };
 
-    class StringValue : public BaseValue
+    class StringValue : public Value
     {
         std::string value;
     public:
