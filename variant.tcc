@@ -232,7 +232,7 @@ namespace sexpr
     template<class E>
     E *Variant<D, T...>::get_if()
     {
-        if (state == Union<D, T...>::index<E>())
+        if (state == Union<D, T...>::template index<E>())
             return data.template get<E>();
         return nullptr;
     }
@@ -241,7 +241,7 @@ namespace sexpr
     template<class E>
     const E *Variant<D, T...>::get_if() const
     {
-        if (state == Union<D, T...>::index<E>())
+        if (state == Union<D, T...>::template index<E>())
             return data.template get<E>();
         return nullptr;
     }

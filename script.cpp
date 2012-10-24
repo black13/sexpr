@@ -26,7 +26,17 @@ namespace tmwa
 {
 namespace sexpr
 {
-    ValuePtr nil;
+    class NilValue : public BaseValue
+    {
+    public:
+        virtual SExpr repr() override
+        {
+            return List();
+        }
+    };
+
+    ValuePtr nil = Shared<NilValue>();
+
     Evaluable eval_to_nil = [](Environment&)
     {
         return nil;
@@ -63,7 +73,7 @@ namespace sexpr
             }
             Evaluable operator()(Int i)
             {
-                ValuePtr vp = std::make_shared<IntValue>(i.value);
+                ValuePtr vp = Shared<IntValue>(i.value);
                 return [vp] (Environment&)
                 {
                     return vp;
@@ -71,7 +81,7 @@ namespace sexpr
             }
             Evaluable operator()(String s)
             {
-                ValuePtr vp = std::make_shared<StringValue>(std::move(s.value));
+                ValuePtr vp = Shared<StringValue>(std::move(s.value));
                 return [vp] (Environment&)
                 {
                     return vp;
@@ -82,7 +92,10 @@ namespace sexpr
                 std::string varname = std::move(t.value);
                 return [varname] (Environment& env)
                 {
-                    return env[varname];
+                    auto it = env.find(varname);
+                    if (it == env.end())
+                        return nil;
+                    return it->second;
                 };
             }
             Evaluable operator()(Void)
@@ -115,7 +128,7 @@ namespace sexpr
         };
     public:
         FunctionCallable(RealFunction rf)
-        : impl(std::make_shared<RealFunction>(std::move(rf)))
+        : impl(Shared<RealFunction>(std::move(rf)))
         {}
 
         Evaluable operator()(Environment& env, List args)
@@ -143,7 +156,7 @@ namespace sexpr
             ValuePtr operator()(Environment& env)
             {
                 ValuePtr c = cond.eval(env);
-                return (c && c->as_int()) ? if_true.eval(env) : if_false.eval(env);
+                return (c->as_int()) ? if_true.eval(env) : if_false.eval(env);
             }
         };
     public:
@@ -189,7 +202,10 @@ namespace sexpr
                 throw ScriptError("extra let garbage");
             return [varname, rhs] (Environment& env) mutable
             {
-                env[varname] = rhs.eval(env);
+                ValuePtr tmp = rhs.eval(env);
+                auto pair = env.insert({varname, tmp});
+                if (!pair.second)
+                    pair.first->second = tmp;
                 return nil;
             };
         }
@@ -204,10 +220,7 @@ namespace sexpr
                 std::cout << ' ';
             else
                 first = false;
-            SExpr sexpr;
-            if (vp)
-                sexpr = vp->repr();
-            std::cout << sexpr << std::endl;
+            std::cout << vp->repr() << std::endl;
         }
         return nil;
     };
@@ -216,10 +229,10 @@ namespace sexpr
 
     std::map<std::string, Callable> builtins =
     {
-        {"if", {"if", std::make_shared<CallableImpl>(ConditionalCallable())}},
-        {"let", {"let", std::make_shared<CallableImpl>(AssignmentCallable())}},
-        {"print", {"print", std::make_shared<CallableImpl>(FunctionCallable(print_function))}},
-        {"builtin", {"builtin", std::make_shared<CallableImpl>(FunctionCallable(builtin_function))}},
+        {"if", {"if", Shared<CallableImpl>(ConditionalCallable())}},
+        {"let", {"let", Shared<CallableImpl>(AssignmentCallable())}},
+        {"print", {"print", Shared<CallableImpl>(FunctionCallable(print_function))}},
+        {"builtin", {"builtin", Shared<CallableImpl>(FunctionCallable(builtin_function))}},
     };
 
     ValuePtr builtin_function(Environment&, flq<ValuePtr> q)
@@ -229,14 +242,14 @@ namespace sexpr
         std::string name = q.take_front()->as_string();
         if (!q.empty())
             throw ScriptError("extra builtin garbage");
-        return std::make_shared<Callable>(builtins.at(name));
+        return Shared<Callable>(builtins.at(name));
     }
 
     Environment create_new_environment()
     {
         return Environment
         {
-            {"builtin", std::make_shared<Callable>(builtins.at("builtin"))},
+            {"builtin", Shared<Callable>(builtins.at("builtin"))},
         };
     }
 } // namespace sexpr

@@ -102,7 +102,12 @@ namespace sexpr
 #if +0
     template<class T>
     Shared<T>::Shared(Shared&&) = default;
+#endif
 
+    template<class T>
+    Shared<T>::Shared(Shared&) = default;
+
+#if +0
     template<class T>
     Shared<T>::Shared(const Shared&) = default;
 #endif

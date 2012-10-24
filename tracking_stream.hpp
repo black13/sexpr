@@ -26,7 +26,7 @@
 #include <istream>
 #include <fstream>
 
-#include "defects.hpp"
+#include "ptr.hpp"
 
 /**
  * If 1, TrackingStream detects and skips a shebang line, if present.
@@ -35,10 +35,12 @@
  * expression returned by the parser is a token at (1, 1) and starts with #!,
  * then ignore any further expressions on line 1.
  * However, this may not work if the shebang line contains any of these:
- * backslash, double-quote, open or close parenthesis
+ * backslash, double-quote, unmatched open or close parenthesis
  */
+
 #define HANDLE_SHEBANG_SPECIALLY 1
 // #define HANDLE_SHEBANG_SPECIALLY 0
+
 namespace tmwa
 {
 namespace sexpr
@@ -68,7 +70,7 @@ namespace sexpr
 
     class TrackingStream
     {
-        std::unique_ptr<std::istream> in;
+        Unique<std::istream> in;
         std::string filename, text, eof_message;
 #if HANDLE_SHEBANG_SPECIALLY
         std::string shebang;
@@ -77,7 +79,7 @@ namespace sexpr
         void next_line();
     public:
         TrackingStream(TrackingStream&&) = default;
-        TrackingStream(std::string name, std::unique_ptr<std::istream> i);
+        TrackingStream(std::string name, Unique<std::istream> i);
         explicit TrackingStream(std::string name);
 #ifdef HANDLE_SHEBANG_SPECIALLY
         std::string& get_shebang();

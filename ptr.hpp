@@ -61,6 +61,8 @@ namespace sexpr
         T *operator->();
 
         const T *operator->() const;
+
+        operator bool() const = delete;
     };
 
     template<class T>
@@ -72,11 +74,14 @@ namespace sexpr
         std::shared_ptr<T> impl;
     public:
         template<class... A>
+
         explicit Shared(A&&... a);
 
         Shared(Unique<T>);
 
         Shared(Shared&&) = default;
+
+        Shared(Shared&); /* = default; */
 
         Shared(const Shared&) = default;
 
@@ -99,6 +104,8 @@ namespace sexpr
         T *operator->();
 
         const T *operator->() const;
+
+        operator bool() const = delete;
     };
 } // namespace sexpr
 } // namespace tmwa

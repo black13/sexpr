@@ -73,7 +73,7 @@ namespace sexpr
             }
     }
 
-    TrackingStream::TrackingStream(std::string name, std::unique_ptr<std::istream> i)
+    TrackingStream::TrackingStream(std::string name, Unique<std::istream> i)
     : in(std::move(i))
     , filename(std::move(name))
     , text() // initialized later
@@ -95,7 +95,7 @@ namespace sexpr
     }
 
     TrackingStream::TrackingStream(std::string name)
-    : TrackingStream(name, make_unique<std::ifstream>(name))
+    : TrackingStream(name, Unique<std::ifstream>(name))
     {
     }
 

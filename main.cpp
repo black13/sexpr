@@ -61,10 +61,7 @@ namespace sexpr
                 break;
             ValuePtr val = compile(env, sex).eval(env);
             if (interactive)
-                if (val)
-                    std::cout << val->repr() << std::endl;
-                // else
-                //     std::cout << "()" << std::endl;
+                std::cout << val->repr() << std::endl;
         }
         while (true);
         std::cout << '\n';

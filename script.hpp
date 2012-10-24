@@ -25,6 +25,7 @@
 #include <iostream>
 
 #include "sexpr.hpp"
+#include "ptr.hpp"
 
 namespace tmwa
 {
@@ -46,15 +47,15 @@ namespace sexpr
 
     class BaseValue;
     class Evaluable;
-    typedef std::shared_ptr<BaseValue> ValuePtr;
+    typedef Shared<BaseValue> ValuePtr;
     typedef std::map<std::string, ValuePtr> Environment;
-    typedef std::shared_ptr<Evaluable> EvaluablePtr;
+    typedef Shared<Evaluable> EvaluablePtr;
     typedef std::function<ValuePtr(Environment&)> EvaluableImplFunction;
-    typedef std::shared_ptr<EvaluableImplFunction> EvaluableImplFunctionPtr;
+    typedef Shared<EvaluableImplFunction> EvaluableImplFunctionPtr;
     typedef std::function<ValuePtr(Environment&, flq<ValuePtr>)> RealFunction;
-    typedef std::shared_ptr<RealFunction> RealFunctionPtr;
+    typedef Shared<RealFunction> RealFunctionPtr;
     typedef std::function<Evaluable(Environment&, List)> CallableImpl;
-    typedef std::shared_ptr<CallableImpl> CallablePtr;
+    typedef Shared<CallableImpl> CallablePtr;
 
     void warn(const std::string&);
 
@@ -78,7 +79,7 @@ namespace sexpr
         // requires a single conversion.
         template<class F>
         Evaluable(F&& f)
-        : impl(std::make_shared<EvaluableImplFunction>(std::forward<F>(f)))
+        : impl(Shared<EvaluableImplFunction>(std::forward<F>(f)))
         {}
 
         Evaluable() = default;
