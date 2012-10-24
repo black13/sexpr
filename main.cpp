@@ -19,6 +19,7 @@
 
 #include "sexpr.hpp"
 #include "parser.hpp"
+#include "ptr.hpp"
 #include "io.hpp"
 #include "script.hpp"
 
@@ -69,6 +70,24 @@ namespace sexpr
         std::cout << '\n';
     }
 
+    void ptr()
+    {
+        Unique<std::string> u(3, 'x');
+        Unique<std::string> u2(std::move(u));
+        Unique<std::istream> u3 = Unique<std::ifstream>("/dev/zero");
+        u = std::move(u2);
+        u3 = Unique<std::ifstream>("/dev/null");
+
+        Shared<std::string> s(3, 'x');
+        Shared<std::string> s2(std::move(s));
+        Shared<std::istream> s3 = Shared<std::ifstream>("/dev/zero");
+        s = std::move(s2);
+        s3 = Shared<std::ifstream>("/dev/null");
+
+        Shared<std::string> s4 = Unique<std::string>();
+        s4 = std::move(u);
+    }
+
     void main(std::string arg)
     {
         if (arg == "list")
@@ -97,6 +116,10 @@ namespace sexpr
         else if (arg == "shell")
         {
             script(true);
+        }
+        else if (arg == "ptr")
+        {
+            ptr();
         }
         else
         {

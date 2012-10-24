@@ -8,12 +8,14 @@ override CXXFLAGS += -std=c++0x
 
 % : %.o
 	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
-%.o : %.cpp
+%.o : %.cpp %.hpp %.tcc
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 %.s : %.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -S -o $@ $< -masm=intel
 %.ll : %.cpp
 	$(CLANGXX) $(CXXFLAGS) $(CPPFLAGS) -S -o $@ $< -emit-llvm
+%.hpp:
+%.tcc:
 
 main: $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
