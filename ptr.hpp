@@ -46,7 +46,7 @@ namespace sexpr
 
         Unique(Unique&&) = default;
 
-        Unique(const Unique&&); /* = default; */
+        Unique(const Unique&&) = delete;
 
         template<class U>
         Unique(Unique<U>);
@@ -79,7 +79,7 @@ namespace sexpr
 
         Shared(Shared&&) = default;
 
-        Shared(const Shared&&); /* = default; */
+        Shared(const Shared&&) = delete;
 
         Shared(Shared&); /* = default; */
 
