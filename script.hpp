@@ -82,12 +82,14 @@ namespace sexpr
         Evaluable(const Evaluable&) = default;
         Evaluable(Evaluable&&) = default;
         Evaluable(Evaluable&);
+        Evaluable(const Evaluable&&);
         Evaluable& operator = (const Evaluable&) = default;
         Evaluable& operator = (Evaluable&&) = default;
 
         void eval(Environment&, Continuation) const;
     };
     inline Evaluable::Evaluable(Evaluable&) = default;
+    inline Evaluable(const Evaluable&&) = default;
 
     Evaluable compile(Environment& env, SExpr code);
 

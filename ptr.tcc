@@ -43,6 +43,9 @@ namespace sexpr
 #endif
 
     template<class T>
+    Unique<T>::Unique(const Unique<T>&&) = default;
+
+    template<class T>
     template<class U>
     Unique<T>::Unique(Unique<U> u)
     : impl(std::move(u.impl))
@@ -91,6 +94,9 @@ namespace sexpr
     template<class T>
     Shared<T>::Shared(Shared&&) = default;
 #endif
+
+    template<class T>
+    Shared<T>::Shared(const Shared&&) = default;
 
     template<class T>
     Shared<T>::Shared(Shared&) = default;
