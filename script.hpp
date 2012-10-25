@@ -43,7 +43,9 @@ namespace sexpr
         {
             return msg.c_str();
         }
+        ~ScriptError() noexcept;
     };
+    inline ScriptError::~ScriptError() noexcept = default;
 
     class Value;
     class Evaluable;

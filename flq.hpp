@@ -50,7 +50,11 @@ namespace sexpr
                 ++b;
             }
         }
-        flq(std::initializer_list<T> l) : flq(l.begin(), l.end()) {}
+        flq(std::initializer_list<T> l) : impl(), last(impl.before_begin())
+        {
+            for (auto b = l.begin(), e = l.end(); b != e; ++b)
+                push_back(*b);
+        }
 
         explicit operator bool();
         bool empty();
@@ -83,7 +87,11 @@ namespace sexpr
     }
 
     template<class T>
-    flq<T>::flq(const flq& r) : flq(r.begin(), r.end()) {}
+    flq<T>::flq(const flq& r) : impl(), last(impl.before_begin())
+    {
+        for (auto b = r.begin(), e = r.end(); b != e; ++b)
+            push_back(*b);
+    }
 
     template<class T>
     flq<T>& flq<T>::operator = (flq<T> r)

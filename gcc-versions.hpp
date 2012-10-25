@@ -24,9 +24,16 @@
 #endif
 #if __GNUC__ == 4 and not (defined __clang__)
 # if __GNUC_MINOR__ < 7
-#  define override /* empty */
-#  define final /* empty */
+#  define override /* not available yet */
+#  define final /* not available yet */
 # endif
+# if false and (__GNUC_MINOR < 6)
+#  define noexcept throw()
+#  define static_assert(cond, msg) /* Fails without constexpr */
+# endif
+// Don't have to do constexpr
+// it's recognized as a keyword in gcc 4.5
+// even though it doesn't actually propogate the constants until 4.6
 #endif
 
 #endif //TMWA_SEXPR_GCC_VERSIONS_HPP

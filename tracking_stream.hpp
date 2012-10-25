@@ -58,7 +58,9 @@ namespace sexpr
     public:
         Unexpected(const Position& pos, const std::string& msg);
         const char *what() const noexcept override;
+        ~Unexpected() noexcept;
     };
+    inline Unexpected::~Unexpected() noexcept = default;
 
     class FakeTrackingStream
     {

@@ -26,13 +26,14 @@ namespace sexpr
     struct Void
     {
         template<class T>
-        constexpr operator T() noexcept{ return T(); }
+        constexpr operator T() noexcept { return T(); }
         template<class T>
         void operator = (T&&) noexcept {}
         template<class T>
         constexpr Void(T&&) noexcept {}
-        constexpr Void() noexcept = default;
+        constexpr Void() noexcept;
     };
+    constexpr Void::Void() noexcept = default;
 } // namespace sexpr
 } // namespace tmwa
 

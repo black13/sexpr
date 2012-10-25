@@ -5,6 +5,7 @@ CXX := ${GXX}
 # clang has better error messages, but does not generate useful debug info, even with current patches
 CXXFLAGS = -g -Wall -Wextra
 override CXXFLAGS += -std=c++0x
+override CPPFLAGS += -include gcc-versions.hpp
 
 % : %.o
 	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@

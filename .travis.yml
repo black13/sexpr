@@ -59,7 +59,10 @@ script:
 env:
 ## gcc 4.4 does not implement lambda functions
 #  - REAL_CC=gcc-4.4 REAL_CXX=g++-4.4
-  - REAL_CC=gcc-4.5 REAL_CXX=g++-4.5
+## missing some standard library functions
+## maybe will do more workarounds later?
+## I don't know ... the workarounds even for 4.6 were pretty bad.
+#  - REAL_CC=gcc-4.5 REAL_CXX=g++-4.5
   - REAL_CC=gcc-4.6 REAL_CXX=g++-4.6
   - REAL_CC=gcc-4.7 REAL_CXX=g++-4.7
   - REAL_CC=clang   REAL_CXX=clang++

@@ -95,8 +95,24 @@ namespace sexpr
     }
 
     TrackingStream::TrackingStream(std::string name)
-    : TrackingStream(name, Unique<std::ifstream>(name))
+    : in(Unique<std::ifstream>(name))
+    , filename(std::move(name))
+    , text()
+    , eof_message()
+#if HANDLE_SHEBANG_SPECIALLY
+    , shebang()
+#endif
+    , line(0)
+    , col(0)
     {
+        next_line();
+#if HANDLE_SHEBANG_SPECIALLY
+        if (0 == text.compare(0, 2, "#!"))
+        {
+            shebang = std::move(text);
+            next_line();
+        }
+#endif
     }
 
 #ifdef HANDLE_SHEBANG_SPECIALLY
