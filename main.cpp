@@ -1,6 +1,6 @@
 //    main.cpp - For now, just check Variant a bit.
 //
-//    Copyright © 2012 Ben Longbons <b.r.longbons@gmail.com>
+//    Copyright © 2012-2014 Ben Longbons <b.r.longbons@gmail.com>
 //
 //    This file is part of The Mana World (Athena server)
 //
@@ -103,6 +103,28 @@ namespace sexpr
         s4 = std::move(u);
     }
 
+    void match()
+    {
+        Variant<int, std::string> var;
+        var.emplace<int>(42);
+        for (int x = 0; x < 2; ++x)
+        {
+            MATCH (var)
+            {
+                CASE(int, i)
+                {
+                    std::cout << "integer: " << i << std::endl;
+                }
+                CASE(std::string, s)
+                {
+                    std::cout << "string: " << s << std::endl;
+                }
+            };
+            if (x == 0)
+                var.emplace<std::string>("hello");
+        }
+    }
+
     void main(std::string arg)
     {
         if (arg == "list")
@@ -135,6 +157,10 @@ namespace sexpr
         else if (arg == "ptr")
         {
             ptr();
+        }
+        else if (arg == "match")
+        {
+            match();
         }
         else
         {

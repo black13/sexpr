@@ -27,9 +27,9 @@
 #  define override /* not available yet */
 #  define final /* not available yet */
 # endif
-# if false and (__GNUC_MINOR < 6)
+# if __GNUC_MINOR__ < 6
 #  define noexcept throw()
-#  define static_assert(cond, msg) /* Fails without constexpr */
+//#  define static_assert(cond, msg) /* Fails without constexpr */
 # endif
 // Don't have to do constexpr
 // it's recognized as a keyword in gcc 4.5

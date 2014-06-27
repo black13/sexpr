@@ -65,4 +65,6 @@ env:
 #  - REAL_CC=gcc-4.5 REAL_CXX=g++-4.5
   - REAL_CC=gcc-4.6 REAL_CXX=g++-4.6
   - REAL_CC=gcc-4.7 REAL_CXX=g++-4.7
-  - REAL_CC=clang   REAL_CXX=clang++
+## ICE due to a class with multiple copy constructors in a union
+## Fixed in svn r160962
+#  - REAL_CC=clang   REAL_CXX=clang++

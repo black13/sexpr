@@ -1,6 +1,6 @@
 //    variant.tcc - implementation of inlines and templates in variant.hpp
 //
-//    Copyright © 2012 Ben Longbons <b.r.longbons@gmail.com>
+//    Copyright © 2012-2014 Ben Longbons <b.r.longbons@gmail.com>
 //
 //    This file is part of The Mana World (Athena server)
 //
@@ -66,6 +66,18 @@ namespace sexpr
             constexpr static Function dispatch[sizeof...(T)] = { _apply_unchecked<T, R, F, V1, V...>... };
             assert(v1.state < sizeof...(T));
             dispatch[v1.state](r, std::forward<F>(f), std::forward<V1>(v1), std::forward<V>(v)...);
+        }
+
+        template<class... T>
+        static size_t get_state(const Variant<T...>& variant)
+        {
+            return variant.state;
+        }
+
+        template<class W, class V>
+        constexpr static size_t get_state_for()
+        {
+            return std::remove_reference<V>::type::DataType::template index<W>();
         }
     };
 

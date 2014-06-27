@@ -27,6 +27,18 @@
 #include "union.hpp"
 #include "void.hpp"
 
+#define WITH_VAR(ty, var, expr)                                         \
+    for (bool _with_guard = true; _with_guard; )                        \
+        for (ty var = expr; _with_guard; _with_guard = false)           \
+
+#define MATCH(expr)                                                     \
+    WITH_VAR(auto&&, _match_var, expr)                                  \
+    switch (tmwa::sexpr::VariantFriend::get_state(_match_var))
+#define CASE(ty, var)                                                   \
+    break;                                                              \
+    case tmwa::sexpr::VariantFriend::get_state_for<ty, decltype(_match_var)>(): \
+    WITH_VAR(ty, var, tmwa::sexpr::VariantFriend::unchecked_get<ty>(_match_var))  \
+
 namespace tmwa
 {
 namespace sexpr
@@ -44,7 +56,8 @@ namespace sexpr
         // simplify things immensely
         friend class VariantFriend;
 
-        Union<D, T...> data;
+        typedef Union<D, T...> DataType;
+        DataType data;
         size_t state;
 
         void do_destruct();
@@ -73,6 +86,7 @@ namespace sexpr
         Variant& operator = (E e)
         {
             emplace<E, E>(std::move(e));
+            return *this;
         }
 
         // use these ONLY if only one type makes sense
